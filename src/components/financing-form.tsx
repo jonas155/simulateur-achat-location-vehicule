@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
@@ -172,7 +172,7 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
                   control={form.control}
                   name="preferenceFlexibility"
                   render={({ field }) => (
-                    <FormItem className="space-y-3">
+                    <FormItem>
                       <FormLabel>Privilégiez-vous la flexibilité (choix d'achat, etc) ?</FormLabel>
                       <FormControl>
                         <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex space-x-4">
@@ -197,7 +197,7 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
                   control={form.control}
                   name="preferenceZeroContraint"
                   render={({ field }) => (
-                    <FormItem className="space-y-3">
+                    <FormItem>
                       <FormLabel>Souhaitez-vous zéro contrainte (entretien inclus, changement facile) ?</FormLabel>
                       <FormControl>
                         <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex space-x-4">
@@ -222,7 +222,7 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
                   control={form.control}
                   name="preferenceCostOptimization"
                   render={({ field }) => (
-                    <FormItem className="space-y-3">
+                    <FormItem>
                       <FormLabel>Votre but est-il d'optimiser le coût sur le long-terme ?</FormLabel>
                       <FormControl>
                         <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex space-x-4">
