@@ -16,6 +16,7 @@ const RecommendFinancingInputSchema = z.object({
   vehiclePrice: z.number().describe('The price of the vehicle.'),
   duration: z.number().describe('The duration of the financing in years.'),
   mileage: z.number().describe('The annual mileage driven.'),
+  interestRate: z.number().optional().describe("The interest rate for the loan in percent."),
   monthlyPaymentLOA: z.number().optional().describe('The estimated monthly payment for LOA.'),
   monthlyPaymentLLD: z.number().optional().describe('The estimated monthly payment for LLD.'),
   monthlyPaymentLoan: z.number().optional().describe('The estimated monthly payment for a loan.'),
@@ -48,6 +49,7 @@ Kilométrage annuel : {{mileage}}
 Mensualité LOA : {{monthlyPaymentLOA}}
 Mensualité LLD : {{monthlyPaymentLLD}}
 Mensualité Crédit : {{monthlyPaymentLoan}}
+Taux d'intérêt Crédit : {{interestRate}}%
 Apport : {{downPayment}}
 Préférence Flexibilité : {{preferenceFlexibility}}
 Préférence Zéro Contrainte : {{preferenceZeroContraint}}
@@ -57,7 +59,7 @@ Considérez les points suivants :
 
 - LOA : Idéal pour la flexibilité et l'option d'achat à la fin. Les mensualités sont souvent inférieures à celles d'un crédit.
 - LLD : Idéal pour ceux qui ne veulent aucune contrainte, changent souvent de voiture et apprécient la facilité d'entretien. Vous ne serez jamais propriétaire du véhicule et le loyer est payé "à perte".
-- Crédit : Vous êtes propriétaire du véhicule et le coût total est souvent inférieur si vous gardez la voiture plusieurs années. Vous êtes responsable de l'entretien et de la revente.
+- Crédit : Vous êtes propriétaire du véhicule et le coût total est souvent inférieur si vous gardez la voiture plusieurs années. Vous êtes responsable de l'entretien et de la revente. Un taux d'intérêt élevé peut rendre le crédit moins attractif.
 
 Répondez avec une recommandation et un raisonnement. La réponse doit être en français.
 `,
