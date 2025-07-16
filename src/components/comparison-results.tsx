@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -18,19 +19,19 @@ const IconNegative = () => <XCircle className="h-5 w-5 text-destructive" />;
 export function ComparisonResults({ result }: ComparisonResultsProps) {
   const { recommendation, reasoning, totalCosts, formData } = result;
 
-  const totalInterest = (formData.monthlyPaymentLoan * formData.duration * 12) - (formData.vehiclePrice - formData.downPayment);
+  const totalInterest = (formData.monthlyPaymentCredit * formData.duration * 12) - (formData.vehiclePrice - formData.downPayment);
 
   const comparisonData = [
     {
       criterion: 'Propriété en fin de contrat',
-      loan: { text: 'Oui', icon: <IconPositive /> },
+      credit: { text: 'Oui', icon: <IconPositive /> },
       loa: { text: 'Possible (si option levée)', icon: <IconPositive /> },
       lld: { text: 'Non, restitution', icon: <IconNegative /> },
     },
     {
       criterion: 'Coût total sur ' + formData.duration + ' ans',
-      loan: { 
-        text: formatCurrency(totalCosts.loan), 
+      credit: { 
+        text: formatCurrency(totalCosts.credit), 
         isBold: true,
         subtext: totalInterest > 0 ? `(dont ${formatCurrency(totalInterest)} d'intérêts)` : undefined
       },
@@ -39,37 +40,37 @@ export function ComparisonResults({ result }: ComparisonResultsProps) {
     },
     {
         criterion: 'Mensualités',
-        loan: { text: `${formatCurrency(formData.monthlyPaymentLoan)}/mois` },
+        credit: { text: `${formatCurrency(formData.monthlyPaymentCredit)}/mois` },
         loa: { text: `${formatCurrency(formData.monthlyPaymentLOA)}/mois` },
         lld: { text: `${formatCurrency(formData.monthlyPaymentLLD)}/mois` },
     },
     {
       criterion: 'Kilométrage',
-      loan: { text: 'Illimité', icon: <IconPositive /> },
+      credit: { text: 'Illimité', icon: <IconPositive /> },
       loa: { text: 'Limité', icon: <IconNegative /> },
       lld: { text: 'Limité', icon: <IconNegative /> },
     },
     {
       criterion: 'Entretien',
-      loan: { text: 'À votre charge', icon: <IconNegative /> },
+      credit: { text: 'À votre charge', icon: <IconNegative /> },
       loa: { text: 'Parfois inclus', icon: <IconPositive /> },
       lld: { text: 'Inclus', icon: <IconPositive /> },
     },
     {
       criterion: 'Flexibilité (revente, etc.)',
-      loan: { text: 'Élevée', icon: <IconPositive /> },
+      credit: { text: 'Élevée', icon: <IconPositive /> },
       loa: { text: 'Moyenne', icon: <IconPositive /> },
       lld: { text: 'Faible', icon: <IconNegative /> },
     },
     {
       criterion: 'Apport initial',
-      loan: { text: 'Souvent requis' },
+      credit: { text: 'Souvent requis' },
       loa: { text: 'Faible ou nul' },
       lld: { text: 'Faible ou nul' },
     },
     {
       criterion: 'Idéal pour...',
-      loan: { text: 'Garder > 5 ans, fort kilométrage' },
+      credit: { text: 'Garder > 5 ans, fort kilométrage' },
       loa: { text: 'Hésitation achat/location' },
       lld: { text: 'Changer souvent, simplicité' },
     },
@@ -115,7 +116,7 @@ export function ComparisonResults({ result }: ComparisonResultsProps) {
                 {comparisonData.map((item) => (
                   <TableRow key={item.criterion}>
                     <TableCell className="font-medium">{item.criterion}</TableCell>
-                    {[item.loan, item.loa, item.lld].map((option, index) => (
+                    {[item.credit, item.loa, item.lld].map((option, index) => (
                       <TableCell key={index} className={`text-center ${option.isBold ? 'font-bold' : ''}`}>
                         <div className="flex flex-col items-center justify-center">
                            <div className="flex items-center gap-2">

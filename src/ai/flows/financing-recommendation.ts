@@ -1,3 +1,4 @@
+
 // src/ai/flows/financing-recommendation.ts
 'use server';
 
@@ -18,7 +19,7 @@ const RecommendFinancingInputSchema = z.object({
   mileage: z.number().describe('The annual mileage driven.'),
   monthlyPaymentLOA: z.number().optional().describe('The estimated monthly payment for LOA.'),
   monthlyPaymentLLD: z.number().optional().describe('The estimated monthly payment for LLD.'),
-  monthlyPaymentLoan: z.number().optional().describe('The estimated monthly payment for a loan.'),
+  monthlyPaymentCredit: z.number().optional().describe('The estimated monthly payment for a loan.'),
   downPayment: z.number().describe('The down payment amount.'),
   preferenceFlexibility: z.string().describe('Do you prefer flexibility? (yes/no)'),
   preferenceZeroContraint: z.string().describe('Do you prefer zero constraint? (yes/no)'),
@@ -27,7 +28,7 @@ const RecommendFinancingInputSchema = z.object({
 export type RecommendFinancingInput = z.infer<typeof RecommendFinancingInputSchema>;
 
 const RecommendFinancingOutputSchema = z.object({
-  recommendation: z.string().describe('The recommended financing option (LOA, LLD, or Loan).'),
+  recommendation: z.string().describe('The recommended financing option (LOA, LLD, or Crédit).'),
   reasoning: z.string().describe('The reasoning behind the recommendation.'),
 });
 export type RecommendFinancingOutput = z.infer<typeof RecommendFinancingOutputSchema>;
@@ -47,7 +48,7 @@ Durée : {{duration}} ans
 Kilométrage annuel : {{mileage}}
 Mensualité LOA : {{monthlyPaymentLOA}}
 Mensualité LLD : {{monthlyPaymentLLD}}
-Mensualité Crédit : {{monthlyPaymentLoan}}
+Mensualité Crédit : {{monthlyPaymentCredit}}
 Apport : {{downPayment}}
 Préférence Flexibilité : {{preferenceFlexibility}}
 Préférence Zéro Contrainte : {{preferenceZeroContraint}}

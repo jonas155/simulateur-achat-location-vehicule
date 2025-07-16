@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -12,7 +13,7 @@ import { Card } from '@/components/ui/card';
 import { Car, PiggyBank, FileText, Loader2 } from 'lucide-react';
 
 export interface TotalCosts {
-  loan: number;
+  credit: number;
   loa: number;
   lld: number;
 }
@@ -35,7 +36,7 @@ export default function Home() {
       const recommendation = await recommendFinancing(values);
 
       const totalCosts: TotalCosts = {
-        loan: values.monthlyPaymentLoan * values.duration * 12 + values.downPayment,
+        credit: values.monthlyPaymentCredit * values.duration * 12 + values.downPayment,
         loa: values.monthlyPaymentLOA * values.duration * 12 + values.downPayment,
         lld: values.monthlyPaymentLLD * values.duration * 12 + values.downPayment,
       };

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { z } from 'zod';
@@ -16,7 +17,7 @@ const formSchema = z.object({
   downPayment: z.coerce.number().min(0, "L'apport ne peut pas être négatif."),
   duration: z.coerce.number().min(1, "La durée doit être d'au moins 1 an.").max(10, 'La durée ne peut pas dépasser 10 ans.'),
   mileage: z.coerce.number().min(1000, "Le kilométrage doit être d'au moins 1000 km."),
-  monthlyPaymentLoan: z.coerce.number().min(0, 'La mensualité ne peut pas être négative.'),
+  monthlyPaymentCredit: z.coerce.number().min(0, 'La mensualité ne peut pas être négative.'),
   monthlyPaymentLOA: z.coerce.number().min(0, 'La mensualité ne peut pas être négative.'),
   monthlyPaymentLLD: z.coerce.number().min(0, 'La mensualité ne peut pas être négative.'),
   preferenceFlexibility: z.enum(['yes', 'no']),
@@ -39,7 +40,7 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
       downPayment: 0,
       duration: 4,
       mileage: 15000,
-      monthlyPaymentLoan: 329,
+      monthlyPaymentCredit: 329,
       monthlyPaymentLOA: 304,
       monthlyPaymentLLD: 329,
       preferenceFlexibility: 'no',
@@ -123,7 +124,7 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
               <div className="space-y-4">
                 <FormField
                   control={form.control}
-                  name="monthlyPaymentLoan"
+                  name="monthlyPaymentCredit"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Crédit Classique</FormLabel>
