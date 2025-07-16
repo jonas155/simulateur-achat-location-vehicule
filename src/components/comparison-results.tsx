@@ -32,7 +32,7 @@ export function ComparisonResults({ result }: ComparisonResultsProps) {
       loan: { 
         text: formatCurrency(totalCosts.loan), 
         isBold: true,
-        subtext: `(dont ${formatCurrency(totalInterest)} d'intérêts)`
+        subtext: totalInterest > 0 ? `(dont ${formatCurrency(totalInterest)} d'intérêts)` : undefined
       },
       loa: { text: formatCurrency(totalCosts.loa), isBold: true },
       lld: { text: formatCurrency(totalCosts.lld), isBold: true },

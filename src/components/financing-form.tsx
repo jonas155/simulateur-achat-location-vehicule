@@ -16,7 +16,6 @@ const formSchema = z.object({
   downPayment: z.coerce.number().min(0, "L'apport ne peut pas être négatif."),
   duration: z.coerce.number().min(1, "La durée doit être d'au moins 1 an.").max(10, 'La durée ne peut pas dépasser 10 ans.'),
   mileage: z.coerce.number().min(1000, "Le kilométrage doit être d'au moins 1000 km."),
-  interestRate: z.coerce.number().min(0, "Le taux d'intérêt ne peut pas être négatif.").max(20, "Le taux d'intérêt semble élevé."),
   monthlyPaymentLoan: z.coerce.number().min(0, 'La mensualité ne peut pas être négative.'),
   monthlyPaymentLOA: z.coerce.number().min(0, 'La mensualité ne peut pas être négative.'),
   monthlyPaymentLLD: z.coerce.number().min(0, 'La mensualité ne peut pas être négative.'),
@@ -40,7 +39,6 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
       downPayment: 0,
       duration: 4,
       mileage: 15000,
-      interestRate: 7,
       monthlyPaymentLoan: 329,
       monthlyPaymentLOA: 304,
       monthlyPaymentLLD: 329,
@@ -131,19 +129,6 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
                       <FormLabel>Crédit Classique</FormLabel>
                       <FormControl>
                         <Input type="number" placeholder="ex: 329" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                  control={form.control}
-                  name="interestRate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Taux d'intérêt du crédit (%)</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="ex: 7" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

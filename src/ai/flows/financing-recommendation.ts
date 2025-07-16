@@ -16,7 +16,6 @@ const RecommendFinancingInputSchema = z.object({
   vehiclePrice: z.number().describe('The price of the vehicle.'),
   duration: z.number().describe('The duration of the financing in years.'),
   mileage: z.number().describe('The annual mileage driven.'),
-  interestRate: z.number().optional().describe("The interest rate for the loan in percent."),
   monthlyPaymentLOA: z.number().optional().describe('The estimated monthly payment for LOA.'),
   monthlyPaymentLLD: z.number().optional().describe('The estimated monthly payment for LLD.'),
   monthlyPaymentLoan: z.number().optional().describe('The estimated monthly payment for a loan.'),
@@ -49,7 +48,6 @@ Kilométrage annuel : {{mileage}}
 Mensualité LOA : {{monthlyPaymentLOA}}
 Mensualité LLD : {{monthlyPaymentLLD}}
 Mensualité Crédit : {{monthlyPaymentLoan}}
-Taux d'intérêt Crédit : {{interestRate}}%
 Apport : {{downPayment}}
 Préférence Flexibilité : {{preferenceFlexibility}}
 Préférence Zéro Contrainte : {{preferenceZeroContraint}}
