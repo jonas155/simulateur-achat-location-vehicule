@@ -18,6 +18,8 @@ const IconNegative = () => <XCircle className="h-5 w-5 text-destructive" />;
 export function ComparisonResults({ result }: ComparisonResultsProps) {
   const { recommendation, reasoning, totalCosts, formData } = result;
 
+  const totalInterest = (formData.monthlyPaymentLoan * formData.duration * 12) - (formData.vehiclePrice - formData.downPayment);
+
   const comparisonData = [
     {
       criterion: 'Propriété en fin de contrat',
@@ -30,6 +32,12 @@ export function ComparisonResults({ result }: ComparisonResultsProps) {
       loan: { text: formatCurrency(totalCosts.loan), isBold: true },
       loa: { text: formatCurrency(totalCosts.loa), isBold: true },
       lld: { text: formatCurrency(totalCosts.lld), isBold: true },
+    },
+    {
+        criterion: 'Détail du coût du crédit',
+        loan: { text: `dont ${formatCurrency(totalInterest)} d'intérêts` },
+        loa: { text: '-' },
+        lld: { text: '-' },
     },
     {
         criterion: 'Mensualités',
