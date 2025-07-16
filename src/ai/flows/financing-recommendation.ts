@@ -40,26 +40,26 @@ const prompt = ai.definePrompt({
   name: 'recommendFinancingPrompt',
   input: {schema: RecommendFinancingInputSchema},
   output: {schema: RecommendFinancingOutputSchema},
-  prompt: `Based on the following information, recommend the best vehicle financing option (LOA, LLD, or Loan).
+  prompt: `En fonction des informations suivantes, recommandez la meilleure option de financement de véhicule (LOA, LLD ou Crédit).
 
-Vehicle Price: {{vehiclePrice}}
-Duration: {{duration}} years
-Annual Mileage: {{mileage}}
-Monthly Payment LOA: {{monthlyPaymentLOA}}
-Monthly Payment LLD: {{monthlyPaymentLLD}}
-Monthly Payment Loan: {{monthlyPaymentLoan}}
-Down Payment: {{downPayment}}
-Flexibility Preference: {{preferenceFlexibility}}
-Zero Constraint Preference: {{preferenceZeroContraint}}
-Cost Optimization Preference: {{preferenceCostOptimization}}
+Prix du véhicule : {{vehiclePrice}}
+Durée : {{duration}} ans
+Kilométrage annuel : {{mileage}}
+Mensualité LOA : {{monthlyPaymentLOA}}
+Mensualité LLD : {{monthlyPaymentLLD}}
+Mensualité Crédit : {{monthlyPaymentLoan}}
+Apport : {{downPayment}}
+Préférence Flexibilité : {{preferenceFlexibility}}
+Préférence Zéro Contrainte : {{preferenceZeroContraint}}
+Préférence Optimisation des coûts : {{preferenceCostOptimization}}
 
-Consider the following:
+Considérez les points suivants :
 
-- LOA: Ideal for flexibility and the option to purchase at the end. Monthly payments are often lower than a loan.
-- LLD: Best for those who want zero constraints, frequent car changes, and easy maintenance. You will never own the vehicle, and the rent is paid "at a loss."
-- Loan: You own the vehicle, and the total cost is often lower if you keep the car for several years. You are responsible for maintenance and resale.
+- LOA : Idéal pour la flexibilité et l'option d'achat à la fin. Les mensualités sont souvent inférieures à celles d'un crédit.
+- LLD : Idéal pour ceux qui ne veulent aucune contrainte, changent souvent de voiture et apprécient la facilité d'entretien. Vous ne serez jamais propriétaire du véhicule et le loyer est payé "à perte".
+- Crédit : Vous êtes propriétaire du véhicule et le coût total est souvent inférieur si vous gardez la voiture plusieurs années. Vous êtes responsable de l'entretien et de la revente.
 
-Respond with a recommendation and reasoning.
+Répondez avec une recommandation et un raisonnement. La réponse doit être en français.
 `,
 });
 
