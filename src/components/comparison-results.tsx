@@ -29,15 +29,13 @@ export function ComparisonResults({ result }: ComparisonResultsProps) {
     },
     {
       criterion: 'Coût total sur ' + formData.duration + ' ans',
-      loan: { text: formatCurrency(totalCosts.loan), isBold: true },
+      loan: { 
+        text: formatCurrency(totalCosts.loan), 
+        isBold: true,
+        subtext: `(dont ${formatCurrency(totalInterest)} d'intérêts)`
+      },
       loa: { text: formatCurrency(totalCosts.loa), isBold: true },
       lld: { text: formatCurrency(totalCosts.lld), isBold: true },
-    },
-    {
-        criterion: 'Détail du coût du crédit',
-        loan: { text: `dont ${formatCurrency(totalInterest)} d'intérêts` },
-        loa: { text: '-' },
-        lld: { text: '-' },
     },
     {
         criterion: 'Mensualités',
@@ -119,9 +117,12 @@ export function ComparisonResults({ result }: ComparisonResultsProps) {
                     <TableCell className="font-medium">{item.criterion}</TableCell>
                     {[item.loan, item.loa, item.lld].map((option, index) => (
                       <TableCell key={index} className={`text-center ${option.isBold ? 'font-bold' : ''}`}>
-                        <div className="flex items-center justify-center gap-2">
-                           {option.icon}
-                           <span>{option.text}</span>
+                        <div className="flex flex-col items-center justify-center">
+                           <div className="flex items-center gap-2">
+                             {option.icon}
+                             <span>{option.text}</span>
+                           </div>
+                           {option.subtext && <span className="text-xs text-muted-foreground">{option.subtext}</span>}
                         </div>
                       </TableCell>
                     ))}
