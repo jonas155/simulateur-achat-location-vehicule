@@ -2,7 +2,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CheckCircle, XCircle, AlertTriangle, Info, Euro, TrendingUp } from 'lucide-react';
+import { CostVisualization } from '@/components/cost-visualization';
 import type { FullResult } from '@/app/page';
 
 interface ComparisonResultsProps {
@@ -17,9 +19,9 @@ const IconPositive = () => <CheckCircle className="h-5 w-5 text-green-500" />;
 const IconNegative = () => <XCircle className="h-5 w-5 text-destructive" />;
 
 export function ComparisonResults({ result }: ComparisonResultsProps) {
-  const { recommendation, reasoning, totalCosts, formData } = result;
+  const { recommendation, reasoning, totalCosts, detailedResults, formData } = result;
 
-  const totalInterest = (formData.monthlyPaymentCredit * formData.duration * 12) - (formData.vehiclePrice - formData.downPayment);
+  const { credit, loa, lld } = detailedResults;
 
   const comparisonData = [
     {
@@ -29,50 +31,73 @@ export function ComparisonResults({ result }: ComparisonResultsProps) {
       lld: { text: 'Non, restitution', icon: <IconNegative /> },
     },
     {
-      criterion: 'Coût total sur ' + formData.duration + ' ans',
+      criterion: 'Coût d\'usage sur ' + formData.duration + ' ans',
       credit: { 
-        text: formatCurrency(totalCosts.credit), 
+        text: formatCurrency(credit.totalCostUsage), 
         isBold: true,
-        subtext: totalInterest > 0 ? `(dont ${formatCurrency(totalInterest)} d'intérêts)` : undefined
+        subtext: credit.totalInterest > 0 ? `(dont ${formatCurrency(credit.totalInterest)} d'intérêts)` : undefined
       },
-      loa: { text: formatCurrency(totalCosts.loa), isBold: true },
-      lld: { text: formatCurrency(totalCosts.lld), isBold: true },
+      loa: { 
+        text: formatCurrency(loa.totalCostUsage), 
+        isBold: true,
+        subtext: loa.residualValue ? `(+${formatCurrency(loa.residualValue!)} option d'achat)` : undefined
+      },
+      lld: { text: formatCurrency(lld.totalCostUsage), isBold: true },
     },
     {
         criterion: 'Mensualités',
-        credit: { text: `${formatCurrency(formData.monthlyPaymentCredit)}/mois` },
-        loa: { text: `${formatCurrency(formData.monthlyPaymentLOA)}/mois` },
-        lld: { text: `${formatCurrency(formData.monthlyPaymentLLD)}/mois` },
+        credit: { text: `${formatCurrency(credit.monthlyPayment)}/mois` },
+        loa: { text: `${formatCurrency(loa.monthlyPayment)}/mois` },
+        lld: { text: `${formatCurrency(lld.monthlyPayment)}/mois` },
+    },
+    {
+      criterion: 'Valeur résiduelle estimée',
+      credit: { text: formatCurrency(credit.residualValue || 0), icon: <TrendingUp className="h-4 w-4 text-green-500" /> },
+      loa: { text: formatCurrency(loa.residualValue || 0), icon: <Info className="h-4 w-4 text-blue-500" /> },
+      lld: { text: 'N/A', icon: <XCircle className="h-4 w-4 text-gray-400" /> },
     },
     {
       criterion: 'Kilométrage',
       credit: { text: 'Illimité', icon: <IconPositive /> },
-      loa: { text: 'Limité', icon: <IconNegative /> },
-      lld: { text: 'Limité', icon: <IconNegative /> },
+      loa: { 
+        text: 'Limité', 
+        icon: <IconNegative />,
+        subtext: formData.mileage > 15000 ? `Pénalité: ${formatCurrency(loa.additionalFees.penalties)}` : undefined
+      },
+      lld: { 
+        text: 'Limité', 
+        icon: <IconNegative />,
+        subtext: formData.mileage > 15000 ? `Pénalité: ${formatCurrency(lld.additionalFees.penalties)}` : undefined
+      },
     },
     {
       criterion: 'Entretien',
-      credit: { text: 'À votre charge', icon: <IconNegative /> },
+      credit: { 
+        text: 'À votre charge', 
+        icon: <IconNegative />,
+        subtext: `${formatCurrency(credit.additionalFees.maintenance)} sur ${formData.duration} ans`
+      },
       loa: { text: 'Parfois inclus', icon: <IconPositive /> },
       lld: { text: 'Inclus', icon: <IconPositive /> },
     },
     {
-      criterion: 'Flexibilité (revente, etc.)',
-      credit: { text: 'Élevée', icon: <IconPositive /> },
-      loa: { text: 'Moyenne', icon: <IconPositive /> },
-      lld: { text: 'Faible', icon: <IconNegative /> },
+      criterion: 'Assurance',
+      credit: { 
+        text: 'Libre choix', 
+        icon: <IconPositive />,
+        subtext: `Estimé: ${formatCurrency(credit.additionalFees.insurance)}`
+      },
+      loa: { 
+        text: 'Souvent imposée',
+        subtext: `Estimé: ${formatCurrency(loa.additionalFees.insurance)}`
+      },
+      lld: { text: 'Incluse', icon: <IconPositive /> },
     },
     {
-      criterion: 'Apport initial',
-      credit: { text: 'Souvent requis' },
-      loa: { text: 'Faible ou nul' },
-      lld: { text: 'Faible ou nul' },
-    },
-    {
-      criterion: 'Idéal pour...',
-      credit: { text: 'Garder > 5 ans, fort kilométrage' },
-      loa: { text: 'Hésitation achat/location' },
-      lld: { text: 'Changer souvent, simplicité' },
+      criterion: 'Frais d\'établissement',
+      credit: { text: formatCurrency(credit.additionalFees.establishmentFee) },
+      loa: { text: formatCurrency(loa.additionalFees.establishmentFee) },
+      lld: { text: formatCurrency(lld.additionalFees.establishmentFee) },
     },
   ];
 
@@ -92,48 +117,119 @@ export function ComparisonResults({ result }: ComparisonResultsProps) {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-headline text-2xl">
-            Tableau Comparatif Détaillé
-          </CardTitle>
-          <CardDescription>
-            Analyse des trois options de financement sur une durée de {formData.duration} ans.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="font-bold w-[25%]">Critère</TableHead>
-                  <TableHead className="font-bold text-center">Crédit Classique</TableHead>
-                  <TableHead className="font-bold text-center">LOA</TableHead>
-                  <TableHead className="font-bold text-center">LLD</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {comparisonData.map((item) => (
-                  <TableRow key={item.criterion}>
-                    <TableCell className="font-medium">{item.criterion}</TableCell>
-                    {[item.credit, item.loa, item.lld].map((option, index) => (
-                      <TableCell key={index} className={`text-center ${option.isBold ? 'font-bold' : ''}`}>
-                        <div className="flex flex-col items-center justify-center">
-                           <div className="flex items-center gap-2">
-                             {option.icon}
-                             <span>{option.text}</span>
-                           </div>
-                           {option.subtext && <span className="text-xs text-muted-foreground">{option.subtext}</span>}
-                        </div>
-                      </TableCell>
+      <Tabs defaultValue="comparison" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="comparison">Comparaison</TabsTrigger>
+          <TabsTrigger value="costs">Analyse des coûts</TabsTrigger>
+          <TabsTrigger value="scenarios">Scénarios</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="comparison" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-headline text-2xl">
+                Tableau Comparatif Détaillé
+              </CardTitle>
+              <CardDescription>
+                Analyse des trois options de financement sur une durée de {formData.duration} ans.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="font-bold w-[25%]">Critère</TableHead>
+                      <TableHead className="font-bold text-center">Crédit Classique</TableHead>
+                      <TableHead className="font-bold text-center">LOA</TableHead>
+                      <TableHead className="font-bold text-center">LLD</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {comparisonData.map((item) => (
+                      <TableRow key={item.criterion}>
+                        <TableCell className="font-medium">{item.criterion}</TableCell>
+                        {[item.credit, item.loa, item.lld].map((option, index) => (
+                          <TableCell key={index} className={`text-center ${option.isBold ? 'font-bold' : ''}`}>
+                            <div className="flex flex-col items-center justify-center">
+                               <div className="flex items-center gap-2">
+                                 {option.icon}
+                                 <span>{option.text}</span>
+                               </div>
+                               {option.subtext && <span className="text-xs text-muted-foreground">{option.subtext}</span>}
+                            </div>
+                          </TableCell>
+                        ))}
+                      </TableRow>
                     ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="costs" className="space-y-4">
+          <CostVisualization detailedResults={detailedResults} duration={formData.duration} />
+        </TabsContent>
+
+        <TabsContent value="scenarios" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Scénarios d'usage</CardTitle>
+              <CardDescription>
+                Recommandations selon votre profil et situation
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-medium mb-2 text-green-600">✓ Crédit recommandé si:</h4>
+                  <ul className="text-sm space-y-1 text-muted-foreground">
+                    <li>• Vous gardez le véhicule > 5 ans</li>
+                    <li>• Kilométrage élevé ({formData.mileage} km/an)</li>
+                    <li>• Vous voulez être propriétaire</li>
+                    <li>• Budget pour l'entretien disponible</li>
+                  </ul>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-medium mb-2 text-blue-600">✓ LOA recommandée si:</h4>
+                  <ul className="text-sm space-y-1 text-muted-foreground">
+                    <li>• Vous hésitez entre achat/location</li>
+                    <li>• Kilométrage modéré</li>
+                    <li>• Flexibilité en fin de contrat</li>
+                    <li>• Potentiel rachat ultérieur</li>
+                  </ul>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-medium mb-2 text-purple-600">✓ LLD recommandée si:</h4>
+                  <ul className="text-sm space-y-1 text-muted-foreground">
+                    <li>• Vous changez souvent de véhicule</li>
+                    <li>• Vous voulez zéro contrainte</li>
+                    <li>• Budget mensuel fixe souhaité</li>
+                    <li>• Pas d'apport disponible</li>
+                  </ul>
+                </div>
+              </div>
+
+              {formData.mileage > 20000 && (
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-yellow-800">Attention - Kilométrage élevé</h4>
+                      <p className="text-sm text-yellow-700 mt-1">
+                        Avec {formData.mileage.toLocaleString()} km/an, les pénalités en LOA/LLD peuvent être importantes. 
+                        Le crédit classique est généralement plus avantageux pour les gros rouleurs.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

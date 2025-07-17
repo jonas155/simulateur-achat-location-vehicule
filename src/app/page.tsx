@@ -11,6 +11,12 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { Car, PiggyBank, FileText, Loader2 } from 'lucide-react';
+import { 
+  calculateCredit, 
+  calculateLOA, 
+  calculateLLD, 
+  type DetailedCosts 
+} from '@/lib/financial-calculations';
 
 export interface TotalCosts {
   credit: number;
@@ -18,8 +24,15 @@ export interface TotalCosts {
   lld: number;
 }
 
+export interface DetailedResults {
+  credit: DetailedCosts;
+  loa: DetailedCosts;
+  lld: DetailedCosts;
+}
+
 export type FullResult = RecommendFinancingOutput & {
   totalCosts: TotalCosts;
+  detailedResults: DetailedResults;
   formData: FormValues;
 };
 
@@ -33,15 +46,53 @@ export default function Home() {
     setResult(null);
 
     try {
-      const recommendation = await recommendFinancing(values);
+      // Calculs détaillés pour chaque option
+      const creditResults = calculateCredit({
+        vehiclePrice: values.vehiclePrice,
+        downPayment: values.downPayment,
+        duration: values.duration,
+        mileage: values.mileage,
+        interestRate: values.interestRate,
+      });
 
-      const totalCosts: TotalCosts = {
-        credit: values.monthlyPaymentCredit * values.duration * 12 + values.downPayment,
-        loa: values.monthlyPaymentLOA * values.duration * 12 + values.downPayment,
-        lld: values.monthlyPaymentLLD * values.duration * 12 + values.downPayment,
+      const loaResults = calculateLOA({
+        vehiclePrice: values.vehiclePrice,
+        downPayment: values.downPayment,
+        duration: values.duration,
+        mileage: values.mileage,
+        residualValueRate: values.residualValueRate,
+        monthlyPayment: values.monthlyPaymentLOA,
+      });
+
+      const lldResults = calculateLLD({
+        vehiclePrice: values.vehiclePrice,
+        downPayment: values.downPayment,
+        duration: values.duration,
+        mileage: values.mileage,
+        monthlyPayment: values.monthlyPaymentLLD,
+      });
+
+      const detailedResults: DetailedResults = {
+        credit: creditResults,
+        loa: loaResults,
+        lld: lldResults,
       };
 
-      setResult({ ...recommendation, totalCosts, formData: values });
+      // Calculs simplifiés pour compatibilité
+      const totalCosts: TotalCosts = {
+        credit: creditResults.totalCostUsage,
+        loa: loaResults.totalCostUsage,
+        lld: lldResults.totalCostUsage,
+      };
+
+      const recommendation = await recommendFinancing(values);
+
+      setResult({ 
+        ...recommendation, 
+        totalCosts, 
+        detailedResults, 
+        formData: values 
+      });
     } catch (error) {
       console.error('Error getting financing recommendation:', error);
       toast({
