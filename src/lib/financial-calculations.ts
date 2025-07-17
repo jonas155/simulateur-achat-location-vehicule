@@ -9,6 +9,7 @@ export interface FinancingParams {
 
 export interface CreditParams extends FinancingParams {
   interestRate: number; // taux annuel en %
+  monthlyPayment: number; // mensualité saisie par l'utilisateur (capital + intérêts)
 }
 
 export interface LOAParams extends FinancingParams {
@@ -37,23 +38,13 @@ export interface DetailedCosts {
   };
 }
 
-// Calcul du crédit avec amortissement
+// Calcul du crédit avec mensualité fournie par l'utilisateur
 export function calculateCredit(params: CreditParams): DetailedCosts {
-  const { vehiclePrice, downPayment, duration, interestRate } = params;
+  const { vehiclePrice, downPayment, duration, monthlyPayment } = params;
   const principal = vehiclePrice - downPayment;
-  const monthlyRate = interestRate / 100 / 12;
-  const numberOfPayments = duration * 12;
 
-  // Calcul mensualité avec formule d'amortissement
-  const monthlyPayment =
-    monthlyRate > 0
-      ? (principal *
-          monthlyRate *
-          Math.pow(1 + monthlyRate, numberOfPayments)) /
-        (Math.pow(1 + monthlyRate, numberOfPayments) - 1)
-      : principal / numberOfPayments;
-
-  const totalPayments = monthlyPayment * numberOfPayments;
+  // La mensualité saisie par l'utilisateur contient déjà les intérêts
+  const totalPayments = monthlyPayment * duration * 12;
   const totalInterest = totalPayments - principal;
 
   // Estimation valeur résiduelle après dépréciation

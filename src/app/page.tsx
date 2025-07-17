@@ -1,22 +1,21 @@
+"use client";
 
-'use client';
-
-import { useState } from 'react';
-import { FinancingForm, type FormValues } from '@/components/financing-form';
-import { ComparisonResults } from '@/components/comparison-results';
+import { useState } from "react";
+import { FinancingForm, type FormValues } from "@/components/financing-form";
+import { ComparisonResults } from "@/components/comparison-results";
 import {
   recommendFinancing,
   type RecommendFinancingOutput,
-} from '@/ai/flows/financing-recommendation';
-import { useToast } from '@/hooks/use-toast';
-import { Card } from '@/components/ui/card';
-import { Car, PiggyBank, FileText, Loader2 } from 'lucide-react';
-import { 
-  calculateCredit, 
-  calculateLOA, 
-  calculateLLD, 
-  type DetailedCosts 
-} from '@/lib/financial-calculations';
+} from "@/ai/flows/financing-recommendation";
+import { useToast } from "@/hooks/use-toast";
+import { Card } from "@/components/ui/card";
+import { Car, PiggyBank, FileText, Loader2, Heart } from "lucide-react";
+import {
+  calculateCredit,
+  calculateLOA,
+  calculateLLD,
+  type DetailedCosts,
+} from "@/lib/financial-calculations";
 
 export interface TotalCosts {
   credit: number;
@@ -53,6 +52,7 @@ export default function Home() {
         duration: values.duration,
         mileage: values.mileage,
         interestRate: values.interestRate,
+        monthlyPayment: values.monthlyPaymentCredit,
       });
 
       const loaResults = calculateLOA({
@@ -87,16 +87,16 @@ export default function Home() {
 
       const recommendation = await recommendFinancing(values);
 
-      setResult({ 
-        ...recommendation, 
-        totalCosts, 
-        detailedResults, 
-        formData: values 
+      setResult({
+        ...recommendation,
+        totalCosts,
+        detailedResults,
+        formData: values,
       });
     } catch (error) {
-      console.error('Error getting financing recommendation:', error);
+      console.error("Error getting financing recommendation:", error);
       toast({
-        variant: 'destructive',
+        variant: "destructive",
         title: "Erreur de l'analyse",
         description:
           "Une erreur est survenue lors de la communication avec l'IA. Veuillez réessayer.",
@@ -111,11 +111,11 @@ export default function Home() {
       <header className="py-8 px-4 md:px-8 bg-primary text-primary-foreground shadow-md">
         <div className="container mx-auto">
           <h1 className="text-4xl md:text-5xl font-headline font-bold">
-            AutoFinance Analyzer
+            Comparateur location ou achat à crédit de voiture
           </h1>
           <p className="mt-2 text-lg text-primary-foreground/80">
-            Comparez LOA, LLD et crédit pour trouver le meilleur financement pour
-            votre véhicule.
+            Comparez LOA, LLD et crédit pour trouver le meilleur financement
+            pour votre véhicule.
           </p>
         </div>
       </header>
@@ -123,7 +123,10 @@ export default function Home() {
       <main className="flex-grow container mx-auto p-4 md:p-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           <div className="lg:col-span-1 lg:sticky top-8">
-            <FinancingForm onCalculate={handleCalculate} isLoading={isLoading} />
+            <FinancingForm
+              onCalculate={handleCalculate}
+              isLoading={isLoading}
+            />
           </div>
           <div className="lg:col-span-2">
             {isLoading && (
@@ -146,8 +149,8 @@ export default function Home() {
                   Prêt à trouver le financement idéal ?
                 </h2>
                 <p className="mt-2 max-w-md text-muted-foreground">
-                  Entrez les détails de votre projet dans le formulaire pour voir
-                  une comparaison détaillée et recevoir une recommandation
+                  Entrez les détails de votre projet dans le formulaire pour
+                  voir une comparaison détaillée et recevoir une recommandation
                   personnalisée de notre expert IA.
                 </p>
               </Card>
@@ -155,8 +158,31 @@ export default function Home() {
           </div>
         </div>
       </main>
-      <footer className="text-center py-6 text-sm text-muted-foreground border-t">
-        <p>AutoFinance Analyzer</p>
+      <footer className="p-6 text-center border-t bg-card text-card-foreground">
+        <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+          <div className="text-sm text-muted-foreground md:text-left">
+            Un outil proposé par{" "}
+            <a
+              href="https://www.linkedin.com/in/jonas-millet/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-primary hover:underline"
+            >
+              jonasmillet.dev
+            </a>
+          </div>
+          <div className="text-sm text-muted-foreground md:text-right">
+            Soutenir ce projet :{" "}
+            <a
+              href="https://buy.stripe.com/cNi9ATdpsbNt9COdi19fW00"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-primary hover:underline inline-flex items-center gap-1"
+            >
+              Faire un don <Heart size={16} className="text-red-500" />
+            </a>
+          </div>
+        </div>
       </footer>
     </div>
   );
