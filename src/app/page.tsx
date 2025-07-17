@@ -57,7 +57,7 @@ export default function Home() {
 
       const loaResults = calculateLOA({
         vehiclePrice: values.vehiclePrice,
-        downPayment: values.downPayment,
+        firstPaymentLOA: values.firstPaymentLOA,
         duration: values.duration,
         mileage: values.mileage,
         residualValueRate: values.residualValueRate,
@@ -66,7 +66,7 @@ export default function Home() {
 
       const lldResults = calculateLLD({
         vehiclePrice: values.vehiclePrice,
-        downPayment: values.downPayment,
+        firstPaymentLLD: values.firstPaymentLLD,
         duration: values.duration,
         mileage: values.mileage,
         monthlyPayment: values.monthlyPaymentLLD,

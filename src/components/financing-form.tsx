@@ -24,12 +24,25 @@ import {
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
 
 const formSchema = z.object({
   vehiclePrice: z.coerce
     .number()
     .min(1000, "Le prix doit être d'au moins 1000 €."),
   downPayment: z.coerce.number().min(0, "L'apport ne peut pas être négatif."),
+  firstPaymentLOA: z.coerce
+    .number()
+    .min(0, "Le premier loyer ne peut pas être négatif."),
+  firstPaymentLLD: z.coerce
+    .number()
+    .min(0, "Le premier loyer ne peut pas être négatif."),
   duration: z.coerce
     .number()
     .min(1, "La durée doit être d'au moins 1 an.")
@@ -72,11 +85,13 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
     defaultValues: {
       vehiclePrice: 22000, // Prix plus représentatif du marché français (véhicule d'occasion récent)
       downPayment: 2000, // Apport modeste mais réaliste
+      firstPaymentLOA: 0, // Premier loyer majoré LOA (optionnel)
+      firstPaymentLLD: 0, // Premier loyer majoré LLD (optionnel)
       duration: 4, // Durée classique maintenue
       mileage: 12000, // Kilométrage moyen français (légèrement inférieur à 15k)
       interestRate: 5.8, // Taux actualisé selon le marché 2024
       residualValueRate: 42, // Valeur résiduelle ajustée pour refléter la dépréciation actuelle
-      monthlyPaymentCredit: 420, // Estimation réaliste pour crédit
+      monthlyPaymentCredit: 468, // Mensualité réaliste pour un crédit à 5.8% sur 4 ans
       monthlyPaymentLOA: 280, // Estimation réaliste pour LOA
       monthlyPaymentLLD: 264, // Estimation réaliste pour LLD
       preferenceFlexibility: "no",
@@ -98,57 +113,27 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onCalculate)} className="space-y-6">
-            <div className="space-y-4">
-              <FormField
-                control={form.control}
-                name="vehiclePrice"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Prix du véhicule (€)</FormLabel>
-                    <FormControl>
-                      <Input type="number" placeholder="ex: 19450" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="downPayment"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Apport initial (€)</FormLabel>
-                    <FormControl>
-                      <Input type="number" placeholder="ex: 0" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="grid grid-cols-2 gap-4">
+            <div className="p-6 border-2 rounded-xl bg-card border-border shadow-sm card-hover fade-in">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-3 h-3 rounded-full bg-muted-foreground"></div>
+                <h3 className="font-semibold text-lg text-card-foreground">
+                  Informations du véhicule
+                </h3>
+              </div>
+              <div className="space-y-4">
                 <FormField
                   control={form.control}
-                  name="duration"
+                  name="vehiclePrice"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Durée (ans)</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="ex: 4" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="mileage"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Km / an</FormLabel>
+                      <FormLabel className="text-foreground font-medium">
+                        Prix du véhicule (€)
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="number"
-                          placeholder="ex: 15000"
+                          placeholder="ex: 22000"
+                          className="input-enhanced"
                           {...field}
                         />
                       </FormControl>
@@ -156,147 +141,354 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
                     </FormItem>
                   )}
                 />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="duration"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-foreground font-medium">
+                          Durée (ans)
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="ex: 4"
+                            className="input-enhanced"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="mileage"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-foreground font-medium">
+                          Km / an
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="ex: 12000"
+                            className="input-enhanced"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
             </div>
 
             <Separator />
 
             <div>
-              <h3 className="text-lg font-medium mb-4">
-                Paramètres de financement
-              </h3>
-
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <FormField
-                  control={form.control}
-                  name="interestRate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Taux d'intérêt crédit (%)</FormLabel>
-                      <FormDescription>
-                        Taux annuel de votre crédit (pour calculer le détail des
-                        intérêts)
-                      </FormDescription>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.1"
-                          placeholder="ex: 5.8"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="residualValueRate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Valeur résiduelle LOA (%)</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="ex: 42" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="text-sm font-medium text-muted-foreground">
-                  Mensualités proposées (€)
-                </h4>
-                <p className="text-xs text-muted-foreground bg-blue-50 p-3 rounded-lg border border-blue-200">
-                  💡 <strong>Important :</strong> Saisissez les mensualités
-                  totales proposées par vos banques/concessionnaires, intérêts
-                  et frais inclus. Ces montants serviront de base à la
-                  comparaison.
+              <div className="space-y-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <h3 className="text-xl font-semibold text-foreground">
+                    Options de financement
+                  </h3>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-5 w-5 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-sm">
+                        <p className="text-sm">
+                          <strong>Important :</strong> Saisissez les mensualités
+                          totales proposées par vos banques/concessionnaires,
+                          intérêts et frais inclus. Ces montants serviront de
+                          base à la comparaison.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <p className="text-muted-foreground text-sm mb-6">
+                  Comparez les trois principales options de financement
+                  automobile.
                 </p>
-                <FormField
-                  control={form.control}
-                  name="monthlyPaymentCredit"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Crédit Classique</FormLabel>
-                      <FormDescription>
-                        Mensualité proposée par votre banque (capital +
-                        intérêts)
-                      </FormDescription>
-                      <FormControl>
-                        <Input type="number" placeholder="ex: 420" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="monthlyPaymentLOA"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>LOA</FormLabel>
-                      <FormDescription>
-                        Mensualité proposée par le concessionnaire (hors option
-                        d'achat)
-                      </FormDescription>
-                      <FormControl>
-                        <Input type="number" placeholder="ex: 280" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="monthlyPaymentLLD"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>LLD</FormLabel>
-                      <FormDescription>
-                        Mensualité proposée par le loueur (tout inclus)
-                      </FormDescription>
-                      <FormControl>
-                        <Input type="number" placeholder="ex: 264" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+
+                {/* Crédit Classique */}
+                <div className="p-6 border-2 rounded-xl bg-secondary/50 border-border shadow-sm card-hover slide-up">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-3 h-3 rounded-full bg-primary"></div>
+                    <h5 className="font-semibold text-lg text-secondary-foreground">
+                      Crédit Classique
+                    </h5>
+                  </div>
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="monthlyPaymentCredit"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-foreground font-medium">
+                            Mensualité (€)
+                          </FormLabel>
+                          <FormDescription className="text-muted-foreground text-sm">
+                            Mensualité proposée par votre banque (capital +
+                            intérêts)
+                          </FormDescription>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder="ex: 468"
+                              className="input-enhanced"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="downPayment"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-foreground font-medium">
+                              Apport initial (€)
+                            </FormLabel>
+                            <FormDescription className="text-muted-foreground text-sm">
+                              Réduit le capital à financer
+                            </FormDescription>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="ex: 2000"
+                                className="input-enhanced"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="interestRate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-foreground font-medium">
+                              Taux d'intérêt (%)
+                            </FormLabel>
+                            <FormDescription className="text-muted-foreground text-sm">
+                              Taux annuel de votre crédit
+                            </FormDescription>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.1"
+                                placeholder="ex: 5.8"
+                                className="input-enhanced"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* LOA */}
+                <div className="p-6 border-2 rounded-xl bg-muted/30 border-border shadow-sm card-hover slide-up">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-3 h-3 rounded-full bg-accent"></div>
+                    <h5 className="font-semibold text-lg text-foreground">
+                      LOA (Location avec Option d'Achat)
+                    </h5>
+                  </div>
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="monthlyPaymentLOA"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-foreground font-medium">
+                            Mensualité (€)
+                          </FormLabel>
+                          <FormDescription className="text-muted-foreground text-sm">
+                            Mensualité proposée par le concessionnaire (hors
+                            option d'achat)
+                          </FormDescription>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder="ex: 280"
+                              className="input-enhanced"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="firstPaymentLOA"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-700 font-medium">
+                              Premier loyer majoré (€) - Optionnel
+                            </FormLabel>
+                            <FormDescription className="text-blue-600 text-sm">
+                              Montant versé au début du contrat
+                            </FormDescription>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="ex: 0 (optionnel)"
+                                className="border-blue-300 focus:border-blue-500"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="residualValueRate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-700 font-medium">
+                              Valeur résiduelle (%)
+                            </FormLabel>
+                            <FormDescription className="text-blue-600 text-sm">
+                              % de la valeur du véhicule en fin de contrat
+                            </FormDescription>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="ex: 42"
+                                className="border-blue-300 focus:border-blue-500"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* LLD */}
+                <div className="p-6 border-2 rounded-xl bg-gradient-to-br from-green-50 to-green-100 border-green-200 shadow-sm">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-3 h-3 rounded-full bg-green-600"></div>
+                    <h5 className="font-semibold text-lg text-green-800">
+                      LLD (Location Longue Durée)
+                    </h5>
+                  </div>
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="monthlyPaymentLLD"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-green-700 font-medium">
+                            Mensualité (€)
+                          </FormLabel>
+                          <FormDescription className="text-green-600 text-sm">
+                            Mensualité proposée par le loueur (tout inclus)
+                          </FormDescription>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder="ex: 264"
+                              className="border-green-300 focus:border-green-500"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="firstPaymentLLD"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-green-700 font-medium">
+                            Premier loyer majoré (€) - Optionnel
+                          </FormLabel>
+                          <FormDescription className="text-green-600 text-sm">
+                            Montant versé au début du contrat
+                          </FormDescription>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder="ex: 0 (optionnel)"
+                              className="border-green-300 focus:border-green-500"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
             <Separator />
 
-            <div>
-              <h3 className="text-lg font-medium mb-4">Vos préférences</h3>
-              <div className="space-y-4">
+            <div className="p-6 border-2 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-3 h-3 rounded-full bg-purple-600"></div>
+                <h3 className="font-semibold text-lg text-purple-800">
+                  Vos préférences
+                </h3>
+              </div>
+              <div className="space-y-6">
                 <FormField
                   control={form.control}
                   name="preferenceFlexibility"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
+                      <FormLabel className="text-purple-700 font-medium text-base">
                         Privilégiez-vous la flexibilité (choix d'achat, etc) ?
                       </FormLabel>
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
                           defaultValue={field.value}
-                          className="flex space-x-4"
+                          className="flex space-x-6 mt-3"
                         >
                           <FormItem className="flex items-center space-x-2 space-y-0">
                             <FormControl>
-                              <RadioGroupItem value="yes" />
+                              <RadioGroupItem
+                                value="yes"
+                                className="border-purple-300 text-purple-600"
+                              />
                             </FormControl>
-                            <FormLabel className="font-normal">Oui</FormLabel>
+                            <FormLabel className="font-medium text-purple-700">
+                              Oui
+                            </FormLabel>
                           </FormItem>
                           <FormItem className="flex items-center space-x-2 space-y-0">
                             <FormControl>
-                              <RadioGroupItem value="no" />
+                              <RadioGroupItem
+                                value="no"
+                                className="border-purple-300 text-purple-600"
+                              />
                             </FormControl>
-                            <FormLabel className="font-normal">Non</FormLabel>
+                            <FormLabel className="font-medium text-purple-700">
+                              Non
+                            </FormLabel>
                           </FormItem>
                         </RadioGroup>
                       </FormControl>
@@ -308,7 +500,7 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
                   name="preferenceZeroContraint"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
+                      <FormLabel className="text-purple-700 font-medium text-base">
                         Souhaitez-vous zéro contrainte (entretien inclus,
                         changement facile) ?
                       </FormLabel>
@@ -316,19 +508,29 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
                         <RadioGroup
                           onValueChange={field.onChange}
                           defaultValue={field.value}
-                          className="flex space-x-4"
+                          className="flex space-x-6 mt-3"
                         >
                           <FormItem className="flex items-center space-x-2 space-y-0">
                             <FormControl>
-                              <RadioGroupItem value="yes" />
+                              <RadioGroupItem
+                                value="yes"
+                                className="border-purple-300 text-purple-600"
+                              />
                             </FormControl>
-                            <FormLabel className="font-normal">Oui</FormLabel>
+                            <FormLabel className="font-medium text-purple-700">
+                              Oui
+                            </FormLabel>
                           </FormItem>
                           <FormItem className="flex items-center space-x-2 space-y-0">
                             <FormControl>
-                              <RadioGroupItem value="no" />
+                              <RadioGroupItem
+                                value="no"
+                                className="border-purple-300 text-purple-600"
+                              />
                             </FormControl>
-                            <FormLabel className="font-normal">Non</FormLabel>
+                            <FormLabel className="font-medium text-purple-700">
+                              Non
+                            </FormLabel>
                           </FormItem>
                         </RadioGroup>
                       </FormControl>
@@ -340,26 +542,36 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
                   name="preferenceCostOptimization"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
+                      <FormLabel className="text-purple-700 font-medium text-base">
                         Votre but est-il d'optimiser le coût sur le long-terme ?
                       </FormLabel>
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
                           defaultValue={field.value}
-                          className="flex space-x-4"
+                          className="flex space-x-6 mt-3"
                         >
                           <FormItem className="flex items-center space-x-2 space-y-0">
                             <FormControl>
-                              <RadioGroupItem value="yes" />
+                              <RadioGroupItem
+                                value="yes"
+                                className="border-purple-300 text-purple-600"
+                              />
                             </FormControl>
-                            <FormLabel className="font-normal">Oui</FormLabel>
+                            <FormLabel className="font-medium text-purple-700">
+                              Oui
+                            </FormLabel>
                           </FormItem>
                           <FormItem className="flex items-center space-x-2 space-y-0">
                             <FormControl>
-                              <RadioGroupItem value="no" />
+                              <RadioGroupItem
+                                value="no"
+                                className="border-purple-300 text-purple-600"
+                              />
                             </FormControl>
-                            <FormLabel className="font-normal">Non</FormLabel>
+                            <FormLabel className="font-medium text-purple-700">
+                              Non
+                            </FormLabel>
                           </FormItem>
                         </RadioGroup>
                       </FormControl>
@@ -372,12 +584,17 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-accent text-accent-foreground hover:bg-accent/90 text-lg py-6"
+              className="w-full btn-gradient text-white font-semibold text-lg py-6 rounded-xl shadow-lg"
             >
               {isLoading ? (
-                <Loader2 className="mr-2 h-6 w-6 animate-spin" />
-              ) : null}
-              {isLoading ? "Analyse en cours..." : "Comparer les options"}
+                <Loader2 className="mr-3 h-6 w-6 animate-spin" />
+              ) : (
+                <div className="flex items-center justify-center gap-2">
+                  <span>📊</span>
+                  <span>Comparer les options</span>
+                </div>
+              )}
+              {isLoading && "Analyse en cours..."}
             </Button>
           </form>
         </Form>

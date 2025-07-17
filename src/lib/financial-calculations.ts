@@ -2,7 +2,7 @@
 
 export interface FinancingParams {
   vehiclePrice: number;
-  downPayment: number;
+  downPayment: number; // Apport initial (réduit le capital à financer)
   duration: number; // en années
   mileage: number; // km/an
 }
@@ -12,12 +12,20 @@ export interface CreditParams extends FinancingParams {
   monthlyPayment: number; // mensualité saisie par l'utilisateur (capital + intérêts)
 }
 
-export interface LOAParams extends FinancingParams {
+export interface LOAParams {
+  vehiclePrice: number;
+  firstPaymentLOA: number; // Premier loyer majoré LOA (optionnel)
+  duration: number; // en années
+  mileage: number; // km/an
   residualValueRate: number; // % de la valeur du véhicule
   monthlyPayment: number;
 }
 
-export interface LLDParams extends FinancingParams {
+export interface LLDParams {
+  vehiclePrice: number;
+  firstPaymentLLD: number; // Premier loyer majoré pour LLD (pas d'apport qui réduit le capital)
+  duration: number; // en années
+  mileage: number; // km/an
   monthlyPayment: number;
   maintenanceIncluded?: boolean;
   insuranceIncluded?: boolean;
@@ -40,12 +48,27 @@ export interface DetailedCosts {
 
 // Calcul du crédit avec mensualité fournie par l'utilisateur
 export function calculateCredit(params: CreditParams): DetailedCosts {
-  const { vehiclePrice, downPayment, duration, monthlyPayment } = params;
-  const principal = vehiclePrice - downPayment;
+  const { vehiclePrice, downPayment, duration, monthlyPayment, interestRate } =
+    params;
+  const principal = vehiclePrice - downPayment; // L'apport réduit le capital à financer
 
-  // La mensualité saisie par l'utilisateur contient déjà les intérêts
-  const totalPayments = monthlyPayment * duration * 12;
-  const totalInterest = totalPayments - principal;
+  // Calcul des intérêts réels basé sur le taux et la durée
+  const monthlyRate = interestRate / 100 / 12;
+  const numberOfPayments = duration * 12;
+
+  // Calcul de la mensualité théorique avec le taux d'intérêt
+  const theoreticalMonthlyPayment =
+    monthlyRate > 0
+      ? (principal *
+          (monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments))) /
+        (Math.pow(1 + monthlyRate, numberOfPayments) - 1)
+      : principal / numberOfPayments; // Si taux = 0
+
+  // Utilise la mensualité saisie mais calcule les intérêts basés sur le taux d'intérêt réel
+  // Cela donne une estimation plus précise des intérêts que de simplement soustraire le capital des paiements totaux
+  const totalPayments = monthlyPayment * numberOfPayments;
+  const theoreticalTotalPayments = theoreticalMonthlyPayment * numberOfPayments;
+  const totalInterest = Math.round(theoreticalTotalPayments - principal);
 
   // Estimation valeur résiduelle après dépréciation
   const depreciationRate = 0.15; // 15% par an en moyenne
@@ -75,14 +98,15 @@ export function calculateCredit(params: CreditParams): DetailedCosts {
 export function calculateLOA(params: LOAParams): DetailedCosts {
   const {
     vehiclePrice,
-    downPayment,
+    firstPaymentLOA,
     duration,
     residualValueRate,
     monthlyPayment,
   } = params;
 
   const residualValue = vehiclePrice * (residualValueRate / 100);
-  const totalPayments = monthlyPayment * duration * 12 + downPayment;
+  // Pour la LOA : premier loyer majoré (optionnel) + mensualités normales
+  const totalPayments = monthlyPayment * duration * 12 + firstPaymentLOA;
 
   // Coût total si achat (location + option)
   const totalCostOwnership = totalPayments + residualValue;
@@ -112,9 +136,10 @@ export function calculateLOA(params: LOAParams): DetailedCosts {
 
 // Calcul LLD
 export function calculateLLD(params: LLDParams): DetailedCosts {
-  const { monthlyPayment, duration, downPayment, mileage } = params;
+  const { monthlyPayment, duration, firstPaymentLLD, mileage } = params;
 
-  const totalPayments = monthlyPayment * duration * 12 + downPayment;
+  // Pour la LLD : premier loyer majoré + mensualités normales (pas d'apport qui réduit le capital)
+  const totalPayments = monthlyPayment * duration * 12 + firstPaymentLLD;
 
   const establishmentFee = 200; // Forfait typique LLD
   const penaltyOverMileage =

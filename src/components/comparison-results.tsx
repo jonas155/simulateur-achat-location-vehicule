@@ -82,6 +82,30 @@ export function ComparisonResults({ result }: ComparisonResultsProps) {
       lld: { text: `${formatCurrency(lld.monthlyPayment)}/mois` },
     },
     {
+      criterion: "Montants initiaux",
+      credit: {
+        text:
+          formData.downPayment > 0
+            ? `Apport: ${formatCurrency(formData.downPayment)}`
+            : "Aucun apport",
+        subtext: "Réduit le capital à financer",
+      },
+      loa: {
+        text:
+          formData.firstPaymentLOA > 0
+            ? `1er loyer: ${formatCurrency(formData.firstPaymentLOA)}`
+            : "Aucun premier loyer",
+        subtext: "Premier loyer majoré (optionnel)",
+      },
+      lld: {
+        text:
+          formData.firstPaymentLLD > 0
+            ? `1er loyer: ${formatCurrency(formData.firstPaymentLLD)}`
+            : "Aucun premier loyer",
+        subtext: "Premier loyer majoré (optionnel)",
+      },
+    },
+    {
       criterion: "Valeur résiduelle estimée",
       credit: {
         text: formatCurrency(credit.residualValue || 0),
