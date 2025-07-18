@@ -54,6 +54,10 @@ const formSchema = z.object({
     .number()
     .min(0, "Le taux ne peut pas être négatif.")
     .max(20, "Le taux ne peut pas dépasser 20%."),
+  creditDuration: z.coerce
+    .number()
+    .min(1, "La durée du crédit doit être d'au moins 1 an.")
+    .max(10, "La durée du crédit ne peut pas dépasser 10 ans."),
   monthlyPaymentCredit: z.coerce
     .number()
     .min(1, "La mensualité doit être supérieure à 0."),
@@ -87,11 +91,12 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
       downPayment: 2000, // Apport modeste mais réaliste
       firstPaymentLOA: 0, // Premier loyer majoré LOA (optionnel)
       firstPaymentLLD: 0, // Premier loyer majoré LLD (optionnel)
-      duration: 4, // Durée classique maintenue
+      duration: 3, // Durée classique ajustée
       mileage: 12000, // Kilométrage moyen français (légèrement inférieur à 15k)
       interestRate: 5.8, // Taux actualisé selon le marché 2024
+      creditDuration: 5, // Durée du crédit (remboursement réel)
       residualValueRate: 42, // Valeur résiduelle ajustée pour refléter la dépréciation actuelle
-      monthlyPaymentCredit: 468, // Mensualité réaliste pour un crédit à 5.8% sur 4 ans
+      monthlyPaymentCredit: 384, // Mensualité réaliste pour un crédit à 5.8% sur 5 ans
       monthlyPaymentLOA: 280, // Estimation réaliste pour LOA
       monthlyPaymentLLD: 264, // Estimation réaliste pour LLD
       preferenceFlexibility: "no",
@@ -113,6 +118,51 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onCalculate)} className="space-y-6">
+            {/* Durée de comparaison */}
+            <div className="p-6 border-2 rounded-xl bg-primary/5 border-primary/20 shadow-sm card-hover fade-in">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-3 h-3 rounded-full bg-primary"></div>
+                <h3 className="font-semibold text-lg text-primary">
+                  Durée de comparaison
+                </h3>
+              </div>
+              <FormField
+                control={form.control}
+                name="duration"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center gap-2">
+                      <FormLabel className="text-foreground font-medium">
+                        Période d'analyse (années)
+                      </FormLabel>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="h-4 w-4 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-sm">
+                              Durée sur laquelle vous souhaitez comparer les
+                              différentes options de financement
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="ex: 3"
+                        className="input-enhanced"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             <div className="p-6 border-2 rounded-xl bg-card border-border shadow-sm card-hover fade-in">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-3 h-3 rounded-full bg-muted-foreground"></div>
@@ -141,48 +191,26 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
                     </FormItem>
                   )}
                 />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="duration"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-foreground font-medium">
-                          Durée (ans)
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            placeholder="ex: 4"
-                            className="input-enhanced"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="mileage"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-foreground font-medium">
-                          Km / an
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            placeholder="ex: 12000"
-                            className="input-enhanced"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                <FormField
+                  control={form.control}
+                  name="mileage"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-foreground font-medium">
+                        Km / an
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="ex: 12000"
+                          className="input-enhanced"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
             </div>
 
@@ -224,46 +252,105 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
                     </h5>
                   </div>
                   <div className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="monthlyPaymentCredit"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-foreground font-medium">
-                            Mensualité (€)
-                          </FormLabel>
-                          <FormDescription className="text-muted-foreground text-sm">
-                            Mensualité proposée par votre banque (capital +
-                            intérêts)
-                          </FormDescription>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="ex: 468"
-                              className="input-enhanced"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="monthlyPaymentCredit"
+                        render={({ field }) => (
+                          <FormItem>
+                            <div className="flex items-center gap-2">
+                              <FormLabel className="text-foreground font-medium">
+                                Mensualité (€)
+                              </FormLabel>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Info className="h-4 w-4 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="text-sm">
+                                      Mensualité proposée par votre banque
+                                      (capital + intérêts)
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="ex: 384"
+                                className="input-enhanced"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                       <FormField
                         control={form.control}
                         name="downPayment"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-foreground font-medium">
-                              Apport initial (€)
-                            </FormLabel>
-                            <FormDescription className="text-muted-foreground text-sm">
-                              Réduit le capital à financer
-                            </FormDescription>
+                            <div className="flex items-center gap-2">
+                              <FormLabel className="text-foreground font-medium">
+                                Apport initial (€)
+                              </FormLabel>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Info className="h-4 w-4 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="text-sm">
+                                      Réduit le capital à financer
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
                             <FormControl>
                               <Input
                                 type="number"
                                 placeholder="ex: 2000"
+                                className="input-enhanced"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="creditDuration"
+                        render={({ field }) => (
+                          <FormItem>
+                            <div className="flex items-center gap-2">
+                              <FormLabel className="text-foreground font-medium">
+                                Durée du crédit (ans)
+                              </FormLabel>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Info className="h-4 w-4 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="text-sm">
+                                      Durée de remboursement du prêt (peut être
+                                      différente de la durée de comparaison)
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="ex: 5"
                                 className="input-enhanced"
                                 {...field}
                               />
@@ -277,12 +364,23 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
                         name="interestRate"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-foreground font-medium">
-                              Taux d'intérêt (%)
-                            </FormLabel>
-                            <FormDescription className="text-muted-foreground text-sm">
-                              Taux annuel de votre crédit
-                            </FormDescription>
+                            <div className="flex items-center gap-2">
+                              <FormLabel className="text-foreground font-medium">
+                                Taux d'intérêt (%)
+                              </FormLabel>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Info className="h-4 w-4 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="text-sm">
+                                      Taux annuel de votre crédit
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
                             <FormControl>
                               <Input
                                 type="number"
@@ -314,13 +412,24 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
                       name="monthlyPaymentLOA"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-foreground font-medium">
-                            Mensualité (€)
-                          </FormLabel>
-                          <FormDescription className="text-muted-foreground text-sm">
-                            Mensualité proposée par le concessionnaire (hors
-                            option d'achat)
-                          </FormDescription>
+                          <div className="flex items-center gap-2">
+                            <FormLabel className="text-foreground font-medium">
+                              Mensualité (€)
+                            </FormLabel>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Info className="h-4 w-4 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="text-sm">
+                                    Mensualité proposée par le concessionnaire
+                                    (hors option d'achat)
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
                           <FormControl>
                             <Input
                               type="number"
@@ -339,12 +448,23 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
                         name="firstPaymentLOA"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-blue-700 font-medium">
-                              Premier loyer majoré (€) - Optionnel
-                            </FormLabel>
-                            <FormDescription className="text-blue-600 text-sm">
-                              Montant versé au début du contrat
-                            </FormDescription>
+                            <div className="flex items-center gap-2">
+                              <FormLabel className="text-blue-700 font-medium">
+                                Premier loyer
+                              </FormLabel>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Info className="h-4 w-4 text-blue-600 cursor-help hover:text-blue-800 transition-colors" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="text-sm">
+                                      Montant versé au début du contrat
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
                             <FormControl>
                               <Input
                                 type="number"
@@ -362,12 +482,24 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
                         name="residualValueRate"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-blue-700 font-medium">
-                              Valeur résiduelle (%)
-                            </FormLabel>
-                            <FormDescription className="text-blue-600 text-sm">
-                              % de la valeur du véhicule en fin de contrat
-                            </FormDescription>
+                            <div className="flex items-center gap-2">
+                              <FormLabel className="text-blue-700 font-medium">
+                                Valeur résiduelle (%)
+                              </FormLabel>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Info className="h-4 w-4 text-blue-600 cursor-help hover:text-blue-800 transition-colors" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="text-sm">
+                                      % de la valeur du véhicule en fin de
+                                      contrat
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
                             <FormControl>
                               <Input
                                 type="number"
@@ -398,12 +530,24 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
                       name="monthlyPaymentLLD"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-green-700 font-medium">
-                            Mensualité (€)
-                          </FormLabel>
-                          <FormDescription className="text-green-600 text-sm">
-                            Mensualité proposée par le loueur (tout inclus)
-                          </FormDescription>
+                          <div className="flex items-center gap-2">
+                            <FormLabel className="text-green-700 font-medium">
+                              Mensualité (€)
+                            </FormLabel>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Info className="h-4 w-4 text-green-600 cursor-help hover:text-green-800 transition-colors" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="text-sm">
+                                    Mensualité proposée par le loueur (tout
+                                    inclus)
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
                           <FormControl>
                             <Input
                               type="number"
@@ -421,12 +565,23 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
                       name="firstPaymentLLD"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-green-700 font-medium">
-                            Premier loyer majoré (€) - Optionnel
-                          </FormLabel>
-                          <FormDescription className="text-green-600 text-sm">
-                            Montant versé au début du contrat
-                          </FormDescription>
+                          <div className="flex items-center gap-2">
+                            <FormLabel className="text-green-700 font-medium">
+                              Premier loyer
+                            </FormLabel>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Info className="h-4 w-4 text-green-600 cursor-help hover:text-green-800 transition-colors" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="text-sm">
+                                    Montant versé au début du contrat
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
                           <FormControl>
                             <Input
                               type="number"

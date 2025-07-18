@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { FinancingForm, type FormValues } from "@/components/financing-form";
 import { ComparisonResults } from "@/components/comparison-results";
 import {
@@ -39,6 +39,7 @@ export default function Home() {
   const [result, setResult] = useState<FullResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   async function handleCalculate(values: FormValues) {
     setIsLoading(true);
@@ -50,6 +51,7 @@ export default function Home() {
         vehiclePrice: values.vehiclePrice,
         downPayment: values.downPayment,
         duration: values.duration,
+        creditDuration: values.creditDuration,
         mileage: values.mileage,
         interestRate: values.interestRate,
         monthlyPayment: values.monthlyPaymentCredit,
@@ -93,6 +95,16 @@ export default function Home() {
         detailedResults,
         formData: values,
       });
+
+      // Scroll vers la section des résultats après un court délai pour laisser le temps au rendu
+      setTimeout(() => {
+        if (resultsRef.current) {
+          resultsRef.current.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }
+      }, 100);
     } catch (error) {
       console.error("Error getting financing recommendation:", error);
       toast({
@@ -128,7 +140,7 @@ export default function Home() {
               isLoading={isLoading}
             />
           </div>
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2" ref={resultsRef}>
             {isLoading && (
               <Card className="flex flex-col items-center justify-center p-8 min-h-[500px] transition-all duration-300">
                 <Loader2 className="h-16 w-16 animate-spin text-primary" />

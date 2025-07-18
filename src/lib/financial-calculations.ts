@@ -9,6 +9,7 @@ export interface FinancingParams {
 
 export interface CreditParams extends FinancingParams {
   interestRate: number; // taux annuel en %
+  creditDuration: number; // durée réelle du crédit en années
   monthlyPayment: number; // mensualité saisie par l'utilisateur (capital + intérêts)
 }
 
@@ -36,6 +37,7 @@ export interface DetailedCosts {
   totalPayments: number;
   totalInterest: number;
   residualValue?: number;
+  remainingDebt?: number; // Capital restant dû (pour crédit)
   totalCostOwnership: number; // Coût réel de possession
   totalCostUsage: number; // Coût d'usage (pour comparaison)
   additionalFees: {
@@ -48,31 +50,60 @@ export interface DetailedCosts {
 
 // Calcul du crédit avec mensualité fournie par l'utilisateur
 export function calculateCredit(params: CreditParams): DetailedCosts {
-  const { vehiclePrice, downPayment, duration, monthlyPayment, interestRate } =
-    params;
+  const {
+    vehiclePrice,
+    downPayment,
+    duration,
+    creditDuration,
+    monthlyPayment,
+    interestRate,
+  } = params;
   const principal = vehiclePrice - downPayment; // L'apport réduit le capital à financer
 
-  // Calcul des intérêts réels basé sur le taux et la durée
+  // Calcul des intérêts réels basé sur le taux et la durée du crédit
   const monthlyRate = interestRate / 100 / 12;
-  const numberOfPayments = duration * 12;
+  const creditPayments = creditDuration * 12; // Nombre de mensualités du crédit
+  const comparisonPayments = duration * 12; // Nombre de mensualités pour la comparaison
 
-  // Calcul de la mensualité théorique avec le taux d'intérêt
+  // Calcul de la mensualité théorique avec le taux d'intérêt sur la durée du crédit
   const theoreticalMonthlyPayment =
     monthlyRate > 0
       ? (principal *
-          (monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments))) /
-        (Math.pow(1 + monthlyRate, numberOfPayments) - 1)
-      : principal / numberOfPayments; // Si taux = 0
+          (monthlyRate * Math.pow(1 + monthlyRate, creditPayments))) /
+        (Math.pow(1 + monthlyRate, creditPayments) - 1)
+      : principal / creditPayments; // Si taux = 0
 
-  // Utilise la mensualité saisie mais calcule les intérêts basés sur le taux d'intérêt réel
-  // Cela donne une estimation plus précise des intérêts que de simplement soustraire le capital des paiements totaux
-  const totalPayments = monthlyPayment * numberOfPayments;
-  const theoreticalTotalPayments = theoreticalMonthlyPayment * numberOfPayments;
+  // Calcul du capital restant dû après la durée de comparaison
+  let remainingDebt = 0;
+  if (comparisonPayments < creditPayments) {
+    // Il reste encore des mensualités à payer après la période de comparaison
+    const remainingPayments = creditPayments - comparisonPayments;
+    if (monthlyRate > 0) {
+      remainingDebt =
+        monthlyPayment *
+        ((Math.pow(1 + monthlyRate, remainingPayments) - 1) /
+          (monthlyRate * Math.pow(1 + monthlyRate, remainingPayments)));
+    } else {
+      remainingDebt = monthlyPayment * remainingPayments;
+    }
+  }
+
+  // Paiements sur la période de comparaison uniquement
+  const paymentsForComparison =
+    monthlyPayment * Math.min(comparisonPayments, creditPayments);
+  const totalPaymentsComparison = paymentsForComparison + downPayment;
+
+  // Calcul des intérêts sur la durée du crédit complet
+  const theoreticalTotalPayments = theoreticalMonthlyPayment * creditPayments;
   const totalInterest = Math.round(theoreticalTotalPayments - principal);
 
-  // Estimation valeur résiduelle après dépréciation
+  // Estimation valeur résiduelle après dépréciation sur la durée de comparaison
   const depreciationRate = 0.15; // 15% par an en moyenne
   const residualValue = vehiclePrice * Math.pow(1 - depreciationRate, duration);
+
+  // Coût d'usage = ce qu'on a payé - valeur résiduelle + capital restant dû
+  const totalCostUsage =
+    totalPaymentsComparison - residualValue + remainingDebt;
 
   const establishmentFee = Math.min(principal * 0.012, 600); // 1.2% plafonné à 600€ (frais actuels)
   const annualInsurance = Math.max(vehiclePrice * 0.025, 600); // 2.5% par an, minimum 600€
@@ -80,11 +111,12 @@ export function calculateCredit(params: CreditParams): DetailedCosts {
 
   return {
     monthlyPayment: Math.round(monthlyPayment),
-    totalPayments: Math.round(totalPayments + downPayment),
+    totalPayments: Math.round(totalPaymentsComparison),
     totalInterest: Math.round(totalInterest),
     residualValue: Math.round(residualValue),
-    totalCostOwnership: Math.round(totalPayments + downPayment),
-    totalCostUsage: Math.round(totalPayments + downPayment - residualValue),
+    remainingDebt: Math.round(remainingDebt),
+    totalCostOwnership: Math.round(totalPaymentsComparison),
+    totalCostUsage: Math.round(totalCostUsage),
     additionalFees: {
       establishmentFee: Math.round(establishmentFee),
       insurance: Math.round(annualInsurance * duration),

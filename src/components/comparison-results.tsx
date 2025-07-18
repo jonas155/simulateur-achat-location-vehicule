@@ -62,7 +62,9 @@ export function ComparisonResults({ result }: ComparisonResultsProps) {
         text: formatCurrency(credit.totalCostUsage),
         isBold: true,
         subtext:
-          credit.totalInterest > 0
+          credit.remainingDebt && credit.remainingDebt > 0
+            ? `(dont ${formatCurrency(credit.remainingDebt)} restant dû)`
+            : credit.totalInterest > 0
             ? `(dont ${formatCurrency(credit.totalInterest)} d'intérêts)`
             : undefined,
       },
@@ -104,6 +106,23 @@ export function ComparisonResults({ result }: ComparisonResultsProps) {
             : "Aucun premier loyer",
         subtext: "Premier loyer majoré (optionnel)",
       },
+    },
+    {
+      criterion: "Capital restant dû",
+      credit: {
+        text:
+          credit.remainingDebt && credit.remainingDebt > 0
+            ? formatCurrency(credit.remainingDebt)
+            : "Aucun",
+        icon:
+          credit.remainingDebt && credit.remainingDebt > 0 ? (
+            <AlertTriangle className="h-4 w-4 text-orange-500" />
+          ) : (
+            <CheckCircle className="h-4 w-4 text-green-500" />
+          ),
+      },
+      loa: { text: "N/A", icon: <XCircle className="h-4 w-4 text-gray-400" /> },
+      lld: { text: "N/A", icon: <XCircle className="h-4 w-4 text-gray-400" /> },
     },
     {
       criterion: "Valeur résiduelle estimée",
