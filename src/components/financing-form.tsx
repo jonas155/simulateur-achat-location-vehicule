@@ -54,10 +54,7 @@ const formSchema = z.object({
     .number()
     .min(0, "Le taux ne peut pas être négatif.")
     .max(20, "Le taux ne peut pas dépasser 20%."),
-  creditDuration: z.coerce
-    .number()
-    .min(1, "La durée du crédit doit être d'au moins 1 an.")
-    .max(10, "La durée du crédit ne peut pas dépasser 10 ans."),
+
   monthlyPaymentCredit: z.coerce
     .number()
     .min(1, "La mensualité doit être supérieure à 0."),
@@ -94,7 +91,6 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
       duration: 3, // Durée classique ajustée
       mileage: 12000, // Kilométrage moyen français (légèrement inférieur à 15k)
       interestRate: 5.8, // Taux actualisé selon le marché 2024
-      creditDuration: 5, // Durée du crédit (remboursement réel)
       residualValueRate: 42, // Valeur résiduelle ajustée pour refléter la dépréciation actuelle
       monthlyPaymentCredit: 384, // Mensualité réaliste pour un crédit à 5.8% sur 5 ans
       monthlyPaymentLOA: 280, // Estimation réaliste pour LOA
@@ -323,78 +319,41 @@ export function FinancingForm({ onCalculate, isLoading }: FinancingFormProps) {
                         )}
                       />
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="creditDuration"
-                        render={({ field }) => (
-                          <FormItem>
-                            <div className="flex items-center gap-2">
-                              <FormLabel className="text-foreground font-medium">
-                                Durée du crédit (ans)
-                              </FormLabel>
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Info className="h-4 w-4 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p className="text-sm">
-                                      Durée de remboursement du prêt (peut être
-                                      différente de la durée de comparaison)
-                                    </p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </div>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                placeholder="ex: 5"
-                                className="input-enhanced"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="interestRate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <div className="flex items-center gap-2">
-                              <FormLabel className="text-foreground font-medium">
-                                Taux d'intérêt (%)
-                              </FormLabel>
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Info className="h-4 w-4 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p className="text-sm">
-                                      Taux annuel de votre crédit
-                                    </p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </div>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="0.1"
-                                placeholder="ex: 5.8"
-                                className="input-enhanced"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                    <FormField
+                      control={form.control}
+                      name="interestRate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center gap-2">
+                            <FormLabel className="text-foreground font-medium">
+                              Taux d'intérêt (%)
+                            </FormLabel>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Info className="h-4 w-4 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="text-sm">
+                                    Taux annuel de votre crédit
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              step="0.1"
+                              placeholder="ex: 5.8"
+                              className="input-enhanced"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
                 </div>
 

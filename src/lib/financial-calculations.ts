@@ -9,7 +9,6 @@ export interface FinancingParams {
 
 export interface CreditParams extends FinancingParams {
   interestRate: number; // taux annuel en %
-  creditDuration: number; // durée réelle du crédit en années
   monthlyPayment: number; // mensualité saisie par l'utilisateur (capital + intérêts)
 }
 
@@ -54,56 +53,36 @@ export function calculateCredit(params: CreditParams): DetailedCosts {
     vehiclePrice,
     downPayment,
     duration,
-    creditDuration,
     monthlyPayment,
     interestRate,
   } = params;
   const principal = vehiclePrice - downPayment; // L'apport réduit le capital à financer
 
-  // Calcul des intérêts réels basé sur le taux et la durée du crédit
-  const monthlyRate = interestRate / 100 / 12;
-  const creditPayments = creditDuration * 12; // Nombre de mensualités du crédit
+  // Calcul des intérêts sur la durée de comparaison
   const comparisonPayments = duration * 12; // Nombre de mensualités pour la comparaison
+  const totalPaymentsOnDuration = monthlyPayment * comparisonPayments;
+  const totalPaymentsComparison = totalPaymentsOnDuration + downPayment;
 
-  // Calcul de la mensualité théorique avec le taux d'intérêt sur la durée du crédit
-  const theoreticalMonthlyPayment =
-    monthlyRate > 0
-      ? (principal *
-          (monthlyRate * Math.pow(1 + monthlyRate, creditPayments))) /
-        (Math.pow(1 + monthlyRate, creditPayments) - 1)
-      : principal / creditPayments; // Si taux = 0
-
-  // Calcul du capital restant dû après la durée de comparaison
-  let remainingDebt = 0;
-  if (comparisonPayments < creditPayments) {
-    // Il reste encore des mensualités à payer après la période de comparaison
-    const remainingPayments = creditPayments - comparisonPayments;
-    if (monthlyRate > 0) {
-      remainingDebt =
-        monthlyPayment *
-        ((Math.pow(1 + monthlyRate, remainingPayments) - 1) /
-          (monthlyRate * Math.pow(1 + monthlyRate, remainingPayments)));
-    } else {
-      remainingDebt = monthlyPayment * remainingPayments;
-    }
+  // Estimation des intérêts totaux basée sur la mensualité et le taux d'intérêt
+  // On estime que sur la durée de comparaison, une partie de chaque mensualité est de l'intérêt
+  const monthlyRate = interestRate / 100 / 12;
+  
+  // Calcul approximatif des intérêts : on suppose un amortissement constant
+  // Les intérêts représentent environ la moitié de la différence entre les paiements totaux et le principal
+  let totalInterest = 0;
+  if (monthlyRate > 0) {
+    // Formule approximative pour estimer les intérêts sur la période de comparaison
+    const averageCapital = principal / 2; // Capital moyen sur la période
+    totalInterest = averageCapital * (interestRate / 100) * duration;
   }
-
-  // Paiements sur la période de comparaison uniquement
-  const paymentsForComparison =
-    monthlyPayment * Math.min(comparisonPayments, creditPayments);
-  const totalPaymentsComparison = paymentsForComparison + downPayment;
-
-  // Calcul des intérêts sur la durée du crédit complet
-  const theoreticalTotalPayments = theoreticalMonthlyPayment * creditPayments;
-  const totalInterest = Math.round(theoreticalTotalPayments - principal);
 
   // Estimation valeur résiduelle après dépréciation sur la durée de comparaison
   const depreciationRate = 0.15; // 15% par an en moyenne
   const residualValue = vehiclePrice * Math.pow(1 - depreciationRate, duration);
 
-  // Coût d'usage = ce qu'on a payé - valeur résiduelle + capital restant dû
-  const totalCostUsage =
-    totalPaymentsComparison - residualValue + remainingDebt;
+  // Coût d'usage = flux de trésorerie sortant sur la durée de comparaison
+  // Pour cohérence avec LOA/LLD : mensualités + apport initial
+  const totalCostUsage = totalPaymentsComparison;
 
   const establishmentFee = Math.min(principal * 0.012, 600); // 1.2% plafonné à 600€ (frais actuels)
   const annualInsurance = Math.max(vehiclePrice * 0.025, 600); // 2.5% par an, minimum 600€
@@ -114,7 +93,7 @@ export function calculateCredit(params: CreditParams): DetailedCosts {
     totalPayments: Math.round(totalPaymentsComparison),
     totalInterest: Math.round(totalInterest),
     residualValue: Math.round(residualValue),
-    remainingDebt: Math.round(remainingDebt),
+    remainingDebt: 0, // Plus de capital restant dû car comparaison sur même période
     totalCostOwnership: Math.round(totalPaymentsComparison),
     totalCostUsage: Math.round(totalCostUsage),
     additionalFees: {

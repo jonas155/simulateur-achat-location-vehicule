@@ -57,16 +57,13 @@ export function ComparisonResults({ result }: ComparisonResultsProps) {
       lld: { text: "Non, restitution", icon: <IconNegative /> },
     },
     {
-      criterion: "Coût d'usage sur " + formData.duration + " ans",
+      criterion: "Coût d'usage sur " + formData.duration + " ans (flux sortant)",
       credit: {
         text: formatCurrency(credit.totalCostUsage),
         isBold: true,
-        subtext:
-          credit.remainingDebt && credit.remainingDebt > 0
-            ? `(dont ${formatCurrency(credit.remainingDebt)} restant dû)`
-            : credit.totalInterest > 0
-            ? `(dont ${formatCurrency(credit.totalInterest)} d'intérêts)`
-            : undefined,
+        subtext: credit.totalInterest > 0
+          ? `(dont ${formatCurrency(credit.totalInterest)} d'intérêts estimés)`
+          : undefined,
       },
       loa: {
         text: formatCurrency(loa.totalCostUsage),
@@ -77,6 +74,7 @@ export function ComparisonResults({ result }: ComparisonResultsProps) {
       },
       lld: { text: formatCurrency(lld.totalCostUsage), isBold: true },
     },
+
     {
       criterion: "Mensualités",
       credit: { text: `${formatCurrency(credit.monthlyPayment)}/mois` },
@@ -107,23 +105,7 @@ export function ComparisonResults({ result }: ComparisonResultsProps) {
         subtext: "Premier loyer majoré (optionnel)",
       },
     },
-    {
-      criterion: "Capital restant dû",
-      credit: {
-        text:
-          credit.remainingDebt && credit.remainingDebt > 0
-            ? formatCurrency(credit.remainingDebt)
-            : "Aucun",
-        icon:
-          credit.remainingDebt && credit.remainingDebt > 0 ? (
-            <AlertTriangle className="h-4 w-4 text-orange-500" />
-          ) : (
-            <CheckCircle className="h-4 w-4 text-green-500" />
-          ),
-      },
-      loa: { text: "N/A", icon: <XCircle className="h-4 w-4 text-gray-400" /> },
-      lld: { text: "N/A", icon: <XCircle className="h-4 w-4 text-gray-400" /> },
-    },
+
     {
       criterion: "Valeur résiduelle estimée",
       credit: {

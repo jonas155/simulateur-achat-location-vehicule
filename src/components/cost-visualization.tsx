@@ -40,7 +40,7 @@ export function CostVisualization({
 }: CostVisualizationProps) {
   const { credit, loa, lld } = detailedResults;
 
-  // Données pour le graphique comparatif
+  // Données pour le graphique comparatif (coûts d'usage cohérents)
   const comparisonData = [
     {
       name: "Crédit",
@@ -54,11 +54,10 @@ export function CostVisualization({
     {
       name: "LOA",
       Mensualités: loa.monthlyPayment * duration * 12,
-      "Option d'achat": loa.residualValue || 0,
       Assurance: loa.additionalFees.insurance,
       Pénalités: loa.additionalFees.penalties,
       Frais: loa.additionalFees.establishmentFee,
-      Total: loa.totalCostOwnership,
+      Total: loa.totalCostUsage, // Cohérent : flux sortant uniquement
     },
     {
       name: "LLD",
@@ -96,12 +95,12 @@ export function CostVisualization({
 
   return (
     <div className="space-y-6">
-      {/* Graphique comparatif des coûts totaux */}
+      {/* Graphique comparatif des coûts d'usage */}
       <Card>
         <CardHeader>
-          <CardTitle>Comparaison des coûts totaux</CardTitle>
+          <CardTitle>Comparaison des coûts d'usage</CardTitle>
           <CardDescription>
-            Analyse détaillée de tous les frais sur {duration} ans
+            Flux de trésorerie sortants sur {duration} ans - comparaison équitable des coûts d'usage
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -119,7 +118,6 @@ export function CostVisualization({
               <Legend />
               <Bar dataKey="Mensualités" stackId="a" fill="#3B5998" />
               <Bar dataKey="Intérêts" stackId="a" fill="#E74C3C" />
-              <Bar dataKey="Option d'achat" stackId="a" fill="#F39C12" />
               <Bar dataKey="Assurance" stackId="a" fill="#9B59B6" />
               <Bar dataKey="Entretien" stackId="a" fill="#1ABC9C" />
               <Bar dataKey="Pénalités" stackId="a" fill="#E67E22" />

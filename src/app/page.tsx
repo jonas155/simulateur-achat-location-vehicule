@@ -51,7 +51,6 @@ export default function Home() {
         vehiclePrice: values.vehiclePrice,
         downPayment: values.downPayment,
         duration: values.duration,
-        creditDuration: values.creditDuration,
         mileage: values.mileage,
         interestRate: values.interestRate,
         monthlyPayment: values.monthlyPaymentCredit,
